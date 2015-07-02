@@ -1,0 +1,20 @@
+{
+  "name": "fabrika/rotor/path",
+  "description": "Abstraction for common path operations",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Andri Xhitoni",
+      "email": "andri@fabrika.al"
+    }
+  ],
+  "autoload": {
+    "psr-4":{
+      "Rotor\\": "Rotor"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.0"
+  }
+}
