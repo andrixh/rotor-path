@@ -13,28 +13,19 @@ use Rotor\Path;
 class PathTest extends \PHPUnit_Framework_TestCase
 {
 
-    /**
-     * @test
-     */
-    public function creates_a_Path_object_via_static_call()
+    public function test_creates_a_Path_object_via_static_call()
     {
         $path = Path::Create('');
         $this->assertInstanceOf('Rotor\Path', $path);
     }
 
-    /**
-     * @test
-     */
-    public function creates_a_Path_object_via_constructor()
+    public function test_creates_a_Path_object_via_constructor()
     {
         $path = new Path('');
         $this->assertInstanceOf('Rotor\Path', $path);
     }
 
-    /**
-     * @test
-     */
-    public function detects_a_trailing_slash_as_a_directory(){
+    public function test_detects_a_trailing_slash_as_a_directory(){
         $path = new Path('/');
         $this->assertTrue($path->isDirectory());
 
@@ -45,19 +36,21 @@ class PathTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($path->isDirectory());
     }
 
-    /**
-     * test
-     */
-    public function interprets_lack_of_trailing_slash_as_not_a_directory()
+    public function test_interprets_lack_of_trailing_slash_as_not_a_directory()
     {
         $path = new Path('/var/test');
         $this->assertFalse($path->isDirectory());
     }
 
-    /**
-     * test
-     */
-    public function compacts_a_path_with_multiple_consecutive_slashes()
+    public function test_interprets_as_directory_when_provided_is_directory_flag(){
+        $path = new Path('/var/test',true);
+        $this->assertTrue($path->isDirectory());
+
+        $path = new Path('/var/test/',true);
+        $this->assertTrue($path->isDirectory());
+    }
+
+    public function test_compacts_a_path_with_multiple_consecutive_slashes()
     {
         $path = new Path('/path//to/somewhere/');
         $this->assertEquals('/path/to/somewhere/', $path->__toString());
@@ -69,10 +62,7 @@ class PathTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('/', $path->__toString());
     }
 
-    /**
-     * @test
-     */
-    public function functions_as_realpath_but_with_non_existing_paths()
+    public function test_functions_as_realpath_but_with_non_existing_paths()
     {
         $path = new path('/var/../test/');
         $this->assertEquals('/test/', $path->__toString());
@@ -84,5 +74,21 @@ class PathTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('/', $path->__toString());
     }
 
+    public function test_interprets_no_ending_slash_as_file(){
+        $path = new path('/var/test/file.ext');
+        $this->assertTrue($path->isFile());
+
+        $path = new Path('/var/something');
+        $this->assertTrue($path->isFile());
+
+        $path = new Path('filename');
+        $this->assertTrue($path->isFile());
+
+        $path = new Path('filename.ext');
+        $this->assertTrue($path->isFile());
+
+        $path = new Path('/filename.ext');
+        $this->assertTrue($path->isFile());
+    }
 
 }

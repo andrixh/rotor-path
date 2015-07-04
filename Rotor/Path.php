@@ -7,6 +7,10 @@ class Path
     protected $pathStr = '';
     protected $is_dir = false;
     protected $is_absolute = false;
+    protected $is_file = false;
+    protected $basename = '';
+    protected $filename = '';
+    protected $extension = '';
 
     protected static $dirCache = [];
 
@@ -32,6 +36,7 @@ class Path
     {
         $this->pathStr = $this->compactPath($pathStr);
         $this->is_dir = $as_directory || $this->hasTrailingSlash();
+        $this->is_file = !$as_directory || !$this->hasTrailingSlash() || $this->detectFile();
     }
 
     protected function compactPath($pathStr)
@@ -68,9 +73,37 @@ class Path
         return (mb_substr($this->pathStr, -1) == '/');
     }
 
+    protected function detectFile(){
+        if ($this->is_dir) {
+            return false;
+        }
+        $parts = explode('/',$this->pathStr);
+        if ($parts[count($parts)-1] == '') {
+            return false;
+        }
+        $basename = array_pop($parts);
+        $fileParts = explode('.',$basename);
+        $filename = '';
+        $extension = '';
+        if (count($fileParts)>0) {
+            if (count($fileParts)>1) {
+                $extension = array_pop($fileParts);
+            }
+            $filename = implode('.',$fileParts);
+        }
+        $this->basename = $basename;
+        $this->filename = $filename;
+        $this->extension = $extension;
+        return true;
+    }
+
     public function isDirectory()
     {
         return $this->is_dir;
+    }
+
+    public function isFile(){
+        return $this->is_file;
     }
 
     /**
