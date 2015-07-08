@@ -36,7 +36,7 @@ class Path
     {
         $this->pathStr = $this->compactPath($pathStr);
         $this->is_dir = $as_directory || $this->hasTrailingSlash();
-        $this->is_file = !$as_directory || !$this->hasTrailingSlash() || $this->detectFile();
+        $this->is_file = !$as_directory || $this->detectFile();
     }
 
     protected function compactPath($pathStr)
@@ -77,23 +77,26 @@ class Path
         if ($this->is_dir) {
             return false;
         }
+        var_dump(1);
         $parts = explode('/',$this->pathStr);
         if ($parts[count($parts)-1] == '') {
+            var_dump('here');
             return false;
         }
         $basename = array_pop($parts);
         $fileParts = explode('.',$basename);
-        $filename = '';
         $extension = '';
         if (count($fileParts)>0) {
             if (count($fileParts)>1) {
                 $extension = array_pop($fileParts);
             }
-            $filename = implode('.',$fileParts);
         }
+        $filename = implode('.',$fileParts);
         $this->basename = $basename;
         $this->filename = $filename;
         $this->extension = $extension;
+        var_dump($filename);
+        var_dump($fileParts);
         return true;
     }
 
@@ -106,6 +109,18 @@ class Path
         return $this->is_file;
     }
 
+    public function basename(){
+        return $this->basename;
+    }
+
+    public function extension(){
+        return $this->extension;
+    }
+
+    public function filename(){
+        return $this->filename;
+    }
+
     /**
      * @return string
      */
@@ -115,7 +130,7 @@ class Path
     }
 
     /**
-     * @param str $str
+     * @param string $str
      * @return Path
      */
     public function append($str)

@@ -89,6 +89,17 @@ class PathTest extends \PHPUnit_Framework_TestCase
 
         $path = new Path('/filename.ext');
         $this->assertTrue($path->isFile());
+
+        $path = new Path('path/to/file');
+        $this->assertTrue($path->isFile());
+    }
+
+    public function test_provides_filename_for_valid_file_paths(){
+        $path = new Path('path/to/file');
+        $this->assertFalse($path->isDirectory());
+        $this->assertTrue($path->isFile());
+        //$this->assertEquals('file',$path->filename());
+
     }
 
 }
