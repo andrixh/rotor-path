@@ -1,13 +1,16 @@
 <?php
 namespace Rotor;
 
+use Rotor\Exception\InvalidPathOperationException;
+
 class Path
 {
-
-    protected $pathStr = '';
+    protected $is_empty = false;
     protected $is_dir = false;
     protected $is_absolute = false;
     protected $is_file = false;
+
+    protected $directory = '';
     protected $basename = '';
     protected $filename = '';
     protected $extension = '';
@@ -34,70 +37,52 @@ class Path
      */
     public function __construct($pathStr, $as_directory = false)
     {
-        $this->pathStr = $this->compactPath($pathStr);
-        $this->is_dir = $as_directory || $this->hasTrailingSlash();
-        $this->is_file = !$as_directory || $this->detectFile();
-    }
-
-    protected function compactPath($pathStr)
-    {
         $hasLeadingSlash = substr($pathStr, 0, 1) == '/';
         $hasTrailingSlash = mb_substr($pathStr, -1) == '/';
+
+        $this->is_dir = $pathStr == '' || $hasTrailingSlash || $as_directory;
+        $this->is_absolute = $hasLeadingSlash;
+
         $parts = explode('/', $pathStr);
 
-        $resultParts = [];
-        for ($i = 0; $i < count($parts); $i++) {
-            if ($parts[$i] != '' && $parts[$i] != '.') {
-                if ($parts[$i] == '..') {
-                    if (count($resultParts) > 0) {
-                        array_pop($resultParts);
-                    }
-                } else {
-                    $resultParts[] = $parts[$i];
+        $pathParts = [];
+        foreach ($parts as $part) {
+            if ($part != '') {
+                if ($part == '..') {
+                    array_pop($pathParts);
+                } else if ($part != '.') {
+                    $pathParts[] = $part;
                 }
             }
         }
 
-        $result = implode('/', $resultParts);
-        if ($hasLeadingSlash) {
-            $result = '/' . $result;
-        }
-        if ($hasTrailingSlash and $result != '/') {
-            $result .= '/';
-        }
-        return $result;
-    }
+        if (!$this->is_dir) {
+            $filePart = array_pop($pathParts);
+            $this->is_file = true;
 
-    protected function hasTrailingSlash()
-    {
-        return (mb_substr($this->pathStr, -1) == '/');
-    }
-
-    protected function detectFile(){
-        if ($this->is_dir) {
-            return false;
-        }
-        var_dump(1);
-        $parts = explode('/',$this->pathStr);
-        if ($parts[count($parts)-1] == '') {
-            var_dump('here');
-            return false;
-        }
-        $basename = array_pop($parts);
-        $fileParts = explode('.',$basename);
-        $extension = '';
-        if (count($fileParts)>0) {
-            if (count($fileParts)>1) {
-                $extension = array_pop($fileParts);
+            $basename = $filePart;
+            $fileParts = explode('.',$basename);
+            $extension = '';
+            if (count($fileParts)>0) {
+                if (count($fileParts)>1) {
+                    $extension = array_pop($fileParts);
+                }
             }
+
+            $filename = implode('.',$fileParts);
+            if ($filename == '' && $extension != '') {
+                $filename = '.'.$extension;
+                $extension = '';
+            }
+            $this->basename = $basename;
+            $this->filename = $filename;
+            $this->extension = $extension;
         }
-        $filename = implode('.',$fileParts);
-        $this->basename = $basename;
-        $this->filename = $filename;
-        $this->extension = $extension;
-        var_dump($filename);
-        var_dump($fileParts);
-        return true;
+
+        $this->directory = ($hasLeadingSlash?'/':'').implode('/',$pathParts).'/';
+        if ($this->directory == '//') {
+            $this->directory = '/';
+        }
     }
 
     public function isDirectory()
@@ -105,20 +90,37 @@ class Path
         return $this->is_dir;
     }
 
+    public function isAbsolute(){
+        return $this->is_absolute;
+    }
+
     public function isFile(){
         return $this->is_file;
     }
 
-    public function basename(){
-        return $this->basename;
+    public function basename($baseName = null){
+        if ($baseName === null) {
+            return $this->basename;
+        }
+        return new Path($this->directory.$baseName);
     }
 
-    public function extension(){
-        return $this->extension;
+    public function extension($ext = null){
+        if ($ext === null) {
+            return $this->extension;
+        }
+        return new Path($this->directory.$this->filename.($ext?'.'.$ext:''));
     }
 
-    public function filename(){
-        return $this->filename;
+    public function filename($filename = null){
+        if ($filename === null) {
+            return $this->filename;
+        }
+        return new Path($this->directory.$filename.($this->extension?'.'.$this->extension:''));
+    }
+
+    public function directory(){
+        return $this->directory;
     }
 
     /**
@@ -126,25 +128,31 @@ class Path
      */
     public function __toString()
     {
-        return $this->pathStr;
+        return $this->directory.$this->basename;
     }
 
     /**
      * @param string $str
      * @return Path
+     * @throws InvalidPathOperationException;
      */
     public function append($str)
     {
-        $currPath = $this->pathStr;
-        if (substr($currPath, -1) == '/') {
-            $currPath = substr($currPath, 0, mb_strlen($currPath) - 1);
+        if ($this->is_file) {
+            throw new InvalidPathOperationException('Cannot append a path after a filename');
         }
-        if (substr($str, 0, 1) == '/') {
-            $str = substr($str, 1);
-        }
-        $resultStr = $currPath . '/' . $str;
+        return new Path($this->directory.'/'.$str);
+    }
 
-        return new Path($resultStr);
+    public function inWebRoot(){
+        return substr($this->__toString(),0,mb_strlen($_SERVER['DOCUMENT_ROOT'])) == $_SERVER['DOCUMENT_ROOT'];
+    }
+
+    public function webPath(){
+        if (!$this->inWebRoot()) {
+            throw new PathNotInWebRootException();
+        }
+        return new Path('/'.substr($this->__toString(),mb_strlen($_SERVER['DOCUMENT_ROOT'])),$this->is_dir);
     }
 
 }
