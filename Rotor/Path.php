@@ -119,8 +119,11 @@ class Path
         return new Path($this->directory.$filename.($this->extension?'.'.$this->extension:''));
     }
 
-    public function directory(){
-        return $this->directory;
+    public function directory($directory=null){
+        if ($directory === null) {
+            return $this->directory();
+        }
+        return new Path($directory.'/'.$this->filename.($this->extension?'.'.$this->extension:''));
     }
 
     /**
@@ -143,6 +146,15 @@ class Path
         }
         return new Path($this->directory.'/'.$str);
     }
+
+    /**
+     * @param string $str
+     * @return Path
+     */
+    public function prepend($str){
+        return new Path($str.'/'.$this->__toString());
+    }
+
 
     public function inWebRoot(){
         return substr($this->__toString(),0,mb_strlen($_SERVER['DOCUMENT_ROOT'])) == $_SERVER['DOCUMENT_ROOT'];

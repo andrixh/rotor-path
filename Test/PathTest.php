@@ -136,6 +136,10 @@ class PathTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('/path/to/filename.xxx', (string)Path::Create('/path/to/file.ext')->basename('filename.xxx'));
     }
 
+    public function test_changes_directory(){
+        $this->assertEquals('/new/dir/file.ext',(string)Path::Create('/path/to/file.ext')->directory('/new/dir'));
+    }
+
     public function test_appends_two_directories(){
         $this->assertEquals('/foo/path/bar/path',(string)Path::Create('/foo/path/')->append('/bar/path'));
         $this->assertEquals('foo/path/bar/path',(string)Path::Create('foo/path/')->append('/bar/path'));
@@ -168,6 +172,6 @@ class PathTest extends \PHPUnit_Framework_TestCase
     public function test_returns_url_if_path_in_web_root(){
         $this->assertEquals('/in/web/root',(string)Path::Create(static::WEB_ROOT.'/in/web/root')->webPath());
         $this->assertEquals('/',(string)Path::Create(static::WEB_ROOT)->webPath());
-        $this->assertEquals('/file.ext',(string)Path::Create(static::WEB_ROOT.'/')->webPath());
+        $this->assertEquals('/file.ext',(string)Path::Create(static::WEB_ROOT.'/file.ext')->webPath());
     }
 }
