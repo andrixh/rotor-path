@@ -14,9 +14,20 @@ use Rotor\Path;
 class PathTest extends \PHPUnit_Framework_TestCase
 {
     const WEB_ROOT = '/var/www/';
+    const TEST_DIR = '/Volumes/Work/workbench/rotor-path';
 
-    protected function setUp(){
+    protected function setUp()
+    {
         $_SERVER['DOCUMENT_ROOT'] = static::WEB_ROOT;
+
+        // Create Test Directory Structure
+
+        mkdir(static::TEST_DIR.'/pathtest');
+    }
+
+    protected function tearDown()
+    {
+        rmdir(static::TEST_DIR.'/pathtest');
     }
 
     public function test_creates_a_Path_object_via_static_call()
@@ -54,7 +65,8 @@ class PathTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(Path::CreateDir('/var/test/')->isDirectory());
     }
 
-    public function test_treats_empty_strings_as_directories(){
+    public function test_treats_empty_strings_as_directories()
+    {
         $this->assertTrue(Path::Create('')->isDirectory());
     }
 
@@ -136,42 +148,52 @@ class PathTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('/path/to/filename.xxx', (string)Path::Create('/path/to/file.ext')->basename('filename.xxx'));
     }
 
-    public function test_changes_directory(){
-        $this->assertEquals('/new/dir/file.ext',(string)Path::Create('/path/to/file.ext')->directory('/new/dir'));
+    public function test_changes_directory()
+    {
+        $this->assertEquals('/new/dir/file.ext', (string)Path::Create('/path/to/file.ext')->directory('/new/dir'));
     }
 
-    public function test_appends_two_directories(){
-        $this->assertEquals('/foo/path/bar/path',(string)Path::Create('/foo/path/')->append('/bar/path'));
-        $this->assertEquals('foo/path/bar/path',(string)Path::Create('foo/path/')->append('/bar/path'));
-        $this->assertEquals('/path',(string)Path::Create('/')->append('path'));
-        $this->assertEquals('/path/',(string)Path::Create('/')->append('path/'));
-        $this->assertEquals('/path/',(string)Path::Create('/')->append('path/'));
-        $this->assertEquals('/path/',(string)Path::Create('')->append('/path/'));
+    public function test_appends_two_directories()
+    {
+        $this->assertEquals('/foo/path/bar/path', (string)Path::Create('/foo/path/')->append('/bar/path'));
+        $this->assertEquals('foo/path/bar/path', (string)Path::Create('foo/path/')->append('/bar/path'));
+        $this->assertEquals('/path', (string)Path::Create('/')->append('path'));
+        $this->assertEquals('/path/', (string)Path::Create('/')->append('path/'));
+        $this->assertEquals('/path/', (string)Path::Create('/')->append('path/'));
+        $this->assertEquals('/path/', (string)Path::Create('')->append('/path/'));
     }
 
-    public function test_appends_a_directory_and_a_file_path(){
-        $this->assertEquals('/path/to/filename.ext',Path::Create('/path/to/')->append('filename.ext'));
+    public function test_appends_a_directory_and_a_file_path()
+    {
+        $this->assertEquals('/path/to/filename.ext', Path::Create('/path/to/')->append('filename.ext'));
     }
 
 
-    public function test_throws_InvalidPathOperationException_when_appending_any_path_to_a_file_path(){
-        try{
+    public function test_throws_InvalidPathOperationException_when_appending_any_path_to_a_file_path()
+    {
+        try {
             Path::Create('/path/to/filename.ext')->append('/something/else/');
-        } catch (InvalidPathOperationException $e){
+        } catch (InvalidPathOperationException $e) {
             return;
         }
         $this->fail('Expected exception not returned');
     }
 
-    public function test_detects_if_path_is_inside_web_root(){
-        $this->assertTrue(Path::Create(static::WEB_ROOT.'foo/bar')->inWebRoot());
+    public function test_detects_if_path_is_inside_web_root()
+    {
+        $this->assertTrue(Path::Create(static::WEB_ROOT . 'foo/bar')->inWebRoot());
 
         $this->assertFalse(Path::Create('/not/in/web/root')->inWebRoot());
     }
 
-    public function test_returns_url_if_path_in_web_root(){
-        $this->assertEquals('/in/web/root',(string)Path::Create(static::WEB_ROOT.'/in/web/root')->webPath());
-        $this->assertEquals('/',(string)Path::Create(static::WEB_ROOT)->webPath());
-        $this->assertEquals('/file.ext',(string)Path::Create(static::WEB_ROOT.'/file.ext')->webPath());
+    public function test_returns_url_if_path_in_web_root()
+    {
+        $this->assertEquals('/in/web/root', (string)Path::Create(static::WEB_ROOT . '/in/web/root')->webPath());
+        $this->assertEquals('/', (string)Path::Create(static::WEB_ROOT)->webPath());
+        $this->assertEquals('/file.ext', (string)Path::Create(static::WEB_ROOT . '/file.ext')->webPath());
+    }
+
+    public function test_determines_if_directory_exists(){
+        $this->assertTrue(Path::Create(static::TEST_DIR.'/pathtest/')->exists());
     }
 }

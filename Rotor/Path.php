@@ -167,4 +167,8 @@ class Path
         return new Path('/'.substr($this->__toString(),mb_strlen($_SERVER['DOCUMENT_ROOT'])),$this->is_dir);
     }
 
+    public function exists(){
+        return file_exists($this->__toString());
+    }
+
 }
