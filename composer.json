@@ -1,7 +1,8 @@
 {
-  "name": "fabrika/rotor/path",
+  "name": "rotor/filesystem",
   "description": "Abstraction for common path operations",
   "minimum-stability": "stable",
+  "version":"1.0.0",
   "license": "MIT",
   "authors": [
     {
